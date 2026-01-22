@@ -32,15 +32,15 @@ let player = {
 // 子弹类型 - 12种
 let currentBulletType = 0;
 const bulletTypes = [
-    // 原有6种
+    // 原有6种（激光颜色已修改）
     {name: '普通', color: '#00ff88', damage: 10, speed: 12, size: 5},
     {name: '散弹', color: '#ffff00', damage: 8, speed: 10, size: 6},
-    {name: '激光', color: '#ff00ff', damage: 15, speed: 18, size: 4},
+    {name: '激光', color: '#4169e1', damage: 15, speed: 18, size: 4}, // 改为深蓝
     {name: '导弹', color: '#ff4400', damage: 20, speed: 8, size: 8},
     {name: '闪电', color: '#00ffff', damage: 12, speed: 25, size: 7},
     {name: '彩虹', color: 'rainbow', damage: 10, speed: 12, size: 6},
     
-    // 新增6种
+    // 新增6种（保持原色）
     {name: '毒液', color: '#7cfc00', damage: 8, speed: 9, size: 7},
     {name: '冰霜', color: '#87ceeb', damage: 6, speed: 11, size: 6},
     {name: '火焰', color: '#ff4500', damage: 14, speed: 10, size: 7},
