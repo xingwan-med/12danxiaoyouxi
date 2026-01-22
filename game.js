@@ -1,5 +1,5 @@
-// 🎮 **完整版游戏** - 可随时切换生命模式
-console.log('🚀 启动完整版游戏 - 可随时切换生命模式');
+// 🎮 **完整版游戏** - 12种子弹射击游戏
+console.log('🚀 启动12种子弹射击游戏');
 
 // 游戏状态
 let game = {
@@ -29,15 +29,24 @@ let player = {
     invincibleTimer: 0
 };
 
-// 子弹类型
+// 子弹类型 - 12种
 let currentBulletType = 0;
 const bulletTypes = [
+    // 原有6种
     {name: '普通', color: '#00ff88', damage: 10, speed: 12, size: 5},
     {name: '散弹', color: '#ffff00', damage: 8, speed: 10, size: 6},
     {name: '激光', color: '#ff00ff', damage: 15, speed: 18, size: 4},
     {name: '导弹', color: '#ff4400', damage: 20, speed: 8, size: 8},
     {name: '闪电', color: '#00ffff', damage: 12, speed: 25, size: 7},
-    {name: '彩虹', color: 'rainbow', damage: 10, speed: 12, size: 6}
+    {name: '彩虹', color: 'rainbow', damage: 10, speed: 12, size: 6},
+    
+    // 新增6种
+    {name: '毒液', color: '#7cfc00', damage: 8, speed: 9, size: 7},
+    {name: '冰霜', color: '#87ceeb', damage: 6, speed: 11, size: 6},
+    {name: '火焰', color: '#ff4500', damage: 14, speed: 10, size: 7},
+    {name: '黑洞', color: '#000000', damage: 25, speed: 5, size: 12},
+    {name: '追踪', color: '#9370db', damage: 12, speed: 8, size: 6},
+    {name: '爆破', color: '#ff6347', damage: 18, speed: 7, size: 10}
 ];
 
 // 关卡配置
@@ -87,6 +96,8 @@ let moveDirection = {x: 0, y: 0};
 const moveSpeed = 5;
 let isManualControl = false;
 let currentLevelConfig = levelConfigs[0];
+
+// ==================== 游戏函数 ====================
 
 // 切换生命模式函数
 function toggleLifeMode() {
@@ -182,7 +193,7 @@ function selectGameMode(isInfinite) {
     updateBulletDisplay();
     updateProgressDisplay();
     showLevelInfo();
-    game.isStarted = true; // 确保游戏已启动
+    game.isStarted = true;
     gameLoop();
     
     console.log(`🎮 选择游戏模式: ${isInfinite ? '无限生命' : '有限生命（3条命）'}`);
@@ -231,6 +242,7 @@ function completeLevel() {
     game.isPaused = true;
     enemies.length = 0;
     bullets.length = 0;
+    particles.length = 0;
     
     game.currentLevel++;
     currentLevelConfig = levelConfigs[game.currentLevel - 1];
@@ -318,34 +330,114 @@ function createBullet(x, y) {
     if (now - lastShotTime < 150) return;
     lastShotTime = now;
 
-    if (bulletConfig.name === '散弹') {
-        for (let i = -1; i <= 1; i++) {
+    switch(bulletConfig.name) {
+        case '散弹':
+            for (let i = -1; i <= 1; i++) {
+                bullets.push({
+                    x: x + i * 20,
+                    y: y,
+                    vy: -bulletConfig.speed,
+                    size: bulletConfig.size,
+                    color: bulletConfig.color,
+                    damage: bulletConfig.damage,
+                    type: 'spread'
+                });
+            }
+            break;
+            
+        case '毒液':
             bullets.push({
-                x: x + i * 20,
-                y: y,
+                x: x, y: y,
                 vy: -bulletConfig.speed,
                 size: bulletConfig.size,
                 color: bulletConfig.color,
-                damage: bulletConfig.damage
+                damage: bulletConfig.damage,
+                type: 'poison',
+                trail: true
             });
-        }
-    } else if (bulletConfig.name === '彩虹') {
-        const hue = (now / 30) % 360;
-        bullets.push({
-            x: x, y: y,
-            vy: -bulletConfig.speed,
-            size: bulletConfig.size,
-            color: `hsl(${hue}, 100%, 50%)`,
-            damage: bulletConfig.damage
-        });
-    } else {
-        bullets.push({
-            x: x, y: y,
-            vy: -bulletConfig.speed,
-            size: bulletConfig.size,
-            color: bulletConfig.color,
-            damage: bulletConfig.damage
-        });
+            break;
+            
+        case '冰霜':
+            bullets.push({
+                x: x, y: y,
+                vy: -bulletConfig.speed,
+                size: bulletConfig.size,
+                color: bulletConfig.color,
+                damage: bulletConfig.damage,
+                type: 'frost',
+                slowEffect: 0.5
+            });
+            break;
+            
+        case '火焰':
+            bullets.push({
+                x: x, y: y,
+                vy: -bulletConfig.speed,
+                size: bulletConfig.size,
+                color: bulletConfig.color,
+                damage: bulletConfig.damage,
+                type: 'fire',
+                burnDamage: 3
+            });
+            break;
+            
+        case '黑洞':
+            bullets.push({
+                x: x, y: y,
+                vy: -bulletConfig.speed,
+                size: bulletConfig.size * 1.5,
+                color: bulletConfig.color,
+                damage: bulletConfig.damage,
+                type: 'blackhole',
+                attraction: 2
+            });
+            break;
+            
+        case '追踪':
+            bullets.push({
+                x: x, y: y,
+                vy: -bulletConfig.speed,
+                size: bulletConfig.size,
+                color: bulletConfig.color,
+                damage: bulletConfig.damage,
+                type: 'homing',
+                target: null
+            });
+            break;
+            
+        case '爆破':
+            bullets.push({
+                x: x, y: y,
+                vy: -bulletConfig.speed,
+                size: bulletConfig.size,
+                color: bulletConfig.color,
+                damage: bulletConfig.damage,
+                type: 'explode',
+                blastRadius: 50
+            });
+            break;
+            
+        case '彩虹':
+            const hue = (now / 30) % 360;
+            bullets.push({
+                x: x, y: y,
+                vy: -bulletConfig.speed,
+                size: bulletConfig.size,
+                color: `hsl(${hue}, 100%, 50%)`,
+                damage: bulletConfig.damage,
+                type: 'rainbow'
+            });
+            break;
+            
+        default:
+            bullets.push({
+                x: x, y: y,
+                vy: -bulletConfig.speed,
+                size: bulletConfig.size,
+                color: bulletConfig.color,
+                damage: bulletConfig.damage,
+                type: bulletConfig.name
+            });
     }
 }
 
@@ -384,7 +476,15 @@ function createEnemy() {
         hp: config.hp,
         points: config.points,
         speed: config.speed,
-        type: enemyType
+        type: enemyType,
+        originalSpeed: config.speed, // 记录原始速度用于恢复
+        poisoned: false,
+        poisonTimer: 0,
+        poisonDamage: 0,
+        frostTimer: 0,
+        burning: false,
+        burnTimer: 0,
+        burnDamage: 0
     });
 }
 
@@ -421,13 +521,119 @@ function update() {
     // 更新子弹
     for (let i = bullets.length - 1; i >= 0; i--) {
         const bullet = bullets[i];
-        bullet.y += bullet.vy;
+        
+        // 追踪弹逻辑
+        if (bullet.type === 'homing' && bullet.target === null) {
+            // 寻找最近敌人
+            let closestDist = Infinity;
+            let closestEnemy = null;
+            for (let j = 0; j < enemies.length; j++) {
+                const e = enemies[j];
+                const dx = bullet.x - e.x;
+                const dy = bullet.y - e.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    closestEnemy = e;
+                }
+            }
+            if (closestEnemy) {
+                bullet.target = closestEnemy;
+            }
+        }
+        
+        // 更新追踪弹
+        if (bullet.type === 'homing' && bullet.target) {
+            const dx = bullet.target.x - bullet.x;
+            const dy = bullet.target.y - bullet.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > 10) {
+                bullet.x += (dx / dist) * 3;
+                bullet.y += (dy / dist) * 3;
+            }
+        } else {
+            bullet.y += bullet.vy;
+        }
+        
         if (bullet.y < -40) bullets.splice(i, 1);
     }
 
     // 更新敌人
     for (let i = enemies.length - 1; i >= 0; i--) {
         const enemy = enemies[i];
+        
+        // 应用状态效果
+        if (enemy.poisoned && enemy.poisonTimer > 0) {
+            enemy.poisonTimer -= 16;
+            if (enemy.poisonTimer % 200 < 16) {
+                enemy.hp -= enemy.poisonDamage || 2;
+                
+                // 毒液粒子效果
+                if (Math.random() < 0.3) {
+                    particles.push({
+                        x: enemy.x + (Math.random() - 0.5) * enemy.size,
+                        y: enemy.y + (Math.random() - 0.5) * enemy.size,
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: (Math.random() - 0.5) * 2,
+                        size: Math.random() * 2 + 1,
+                        color: '#7cfc00',
+                        life: 20,
+                        alpha: 0.6
+                    });
+                }
+            }
+            if (enemy.poisonTimer <= 0) {
+                enemy.poisoned = false;
+            }
+        }
+        
+        if (enemy.frostTimer > 0) {
+            enemy.frostTimer -= 16;
+            enemy.speed = enemy.originalSpeed * 0.5; // 减速50%
+            
+            // 冰霜粒子效果
+            if (Math.random() < 0.2) {
+                particles.push({
+                    x: enemy.x + (Math.random() - 0.5) * enemy.size,
+                    y: enemy.y + (Math.random() - 0.5) * enemy.size,
+                    vx: (Math.random() - 0.5) * 1,
+                    vy: (Math.random() - 0.5) * 1,
+                    size: Math.random() * 2 + 1,
+                    color: '#87ceeb',
+                    life: 15,
+                    alpha: 0.7
+                });
+            }
+            
+            if (enemy.frostTimer <= 0) {
+                enemy.speed = enemy.originalSpeed; // 恢复速度
+            }
+        }
+        
+        if (enemy.burning && enemy.burnTimer > 0) {
+            enemy.burnTimer -= 16;
+            if (enemy.burnTimer % 300 < 16) {
+                enemy.hp -= enemy.burnDamage || 3;
+                
+                // 火焰粒子效果
+                for (let j = 0; j < 3; j++) {
+                    particles.push({
+                        x: enemy.x + (Math.random() - 0.5) * enemy.size,
+                        y: enemy.y + (Math.random() - 0.5) * enemy.size,
+                        vx: (Math.random() - 0.5) * 3,
+                        vy: -Math.random() * 3 - 1,
+                        size: Math.random() * 2 + 1,
+                        color: `hsl(${20 + Math.random() * 30}, 100%, 50%)`,
+                        life: 25,
+                        alpha: 0.8
+                    });
+                }
+            }
+            if (enemy.burnTimer <= 0) {
+                enemy.burning = false;
+            }
+        }
+        
         enemy.y += enemy.speed;
         
         // 检查敌人是否到达底部
@@ -443,24 +649,176 @@ function update() {
     // 碰撞检测
     for (let i = bullets.length - 1; i >= 0; i--) {
         const bullet = bullets[i];
+        let bulletHit = false;
+        
         for (let j = enemies.length - 1; j >= 0; j--) {
             const enemy = enemies[j];
             const dx = bullet.x - enemy.x;
             const dy = bullet.y - enemy.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
+            
             if (distance < bullet.size + enemy.size) {
-                enemy.hp -= bullet.damage;
+                // 根据子弹类型应用不同效果
+                switch(bullet.type) {
+                    case 'poison':
+                        enemy.hp -= bullet.damage;
+                        enemy.poisoned = true;
+                        enemy.poisonTimer = 1000;
+                        enemy.poisonDamage = 2;
+                        break;
+                        
+                    case 'frost':
+                        enemy.hp -= bullet.damage;
+                        enemy.frostTimer = 2000;
+                        break;
+                        
+                    case 'fire':
+                        enemy.hp -= bullet.damage;
+                        enemy.burning = true;
+                        enemy.burnTimer = 1500;
+                        enemy.burnDamage = 3;
+                        break;
+                        
+                    case 'blackhole':
+                        enemy.hp -= bullet.damage;
+                        // 吸引周围其他敌人
+                        for (let k = 0; k < enemies.length; k++) {
+                            if (k !== j) {
+                                const otherEnemy = enemies[k];
+                                const dx2 = bullet.x - otherEnemy.x;
+                                const dy2 = bullet.y - otherEnemy.y;
+                                const dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+                                if (dist2 < 100) {
+                                    otherEnemy.x += dx2 * 0.1;
+                                    otherEnemy.y += dy2 * 0.1;
+                                }
+                            }
+                        }
+                        // 黑洞粒子效果
+                        for (let p = 0; p < 10; p++) {
+                            const angle = Math.random() * Math.PI * 2;
+                            const radius = bullet.size * 0.8;
+                            particles.push({
+                                x: bullet.x + Math.cos(angle) * radius,
+                                y: bullet.y + Math.sin(angle) * radius,
+                                vx: Math.cos(angle) * 2,
+                                vy: Math.sin(angle) * 2,
+                                size: Math.random() * 3 + 1,
+                                color: '#4b0082',
+                                life: 30,
+                                alpha: 0.8
+                            });
+                        }
+                        break;
+                        
+                    case 'explode':
+                        enemy.hp -= bullet.damage;
+                        // 对周围敌人造成伤害
+                        for (let k = 0; k < enemies.length; k++) {
+                            if (k !== j) {
+                                const otherEnemy = enemies[k];
+                                const dx2 = bullet.x - otherEnemy.x;
+                                const dy2 = bullet.y - otherEnemy.y;
+                                const dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+                                if (dist2 < bullet.blastRadius) {
+                                    otherEnemy.hp -= bullet.damage * 0.5;
+                                }
+                            }
+                        }
+                        // 爆炸粒子效果
+                        for (let p = 0; p < 25; p++) {
+                            particles.push({
+                                x: bullet.x,
+                                y: bullet.y,
+                                vx: (Math.random() - 0.5) * 10,
+                                vy: (Math.random() - 0.5) * 10,
+                                size: Math.random() * 4 + 2,
+                                color: ['#ff4500', '#ff6347', '#ffa500'][Math.floor(Math.random() * 3)],
+                                life: 40
+                            });
+                        }
+                        bulletHit = true;
+                        break;
+                        
+                    default:
+                        enemy.hp -= bullet.damage;
+                }
+                
                 if (enemy.hp <= 0) {
                     game.score += enemy.points;
                     game.enemiesDefeated++;
                     game.totalEnemiesDefeated++;
                     scoreElement.textContent = game.score;
+                    
+                    // 敌人死亡粒子效果
+                    for (let p = 0; p < 15; p++) {
+                        particles.push({
+                            x: enemy.x,
+                            y: enemy.y,
+                            vx: (Math.random() - 0.5) * 6,
+                            vy: (Math.random() - 0.5) * 6,
+                            size: Math.random() * 3 + 1,
+                            color: enemy.color,
+                            life: 30
+                        });
+                    }
+                    
                     enemies.splice(j, 1);
                     updateProgressDisplay();
+                    
+                    // 火焰击杀额外效果
+                    if (bullet.type === 'fire') {
+                        for (let p = 0; p < 8; p++) {
+                            particles.push({
+                                x: enemy.x,
+                                y: enemy.y,
+                                vx: (Math.random() - 0.5) * 5,
+                                vy: -Math.random() * 5 - 2,
+                                size: Math.random() * 2 + 1,
+                                color: '#ff4500',
+                                life: 25
+                            });
+                        }
+                    }
                 }
-                bullets.splice(i, 1);
+                
+                // 某些子弹击中后消失，某些继续
+                if (bullet.type !== 'laser' && bullet.type !== 'blackhole') {
+                    bulletHit = true;
+                }
                 break;
             }
+        }
+        
+        if (bulletHit) {
+            bullets.splice(i, 1);
+        }
+        
+        // 毒液弹轨迹效果
+        if (bullet.type === 'poison' && bullet.trail && Math.random() < 0.4) {
+            particles.push({
+                x: bullet.x,
+                y: bullet.y,
+                vx: (Math.random() - 0.5) * 1.5,
+                vy: (Math.random() - 0.5) * 1.5,
+                size: Math.random() * 2 + 1,
+                color: '#7cfc00',
+                life: 25,
+                alpha: 0.5
+            });
+        }
+        
+        // 火焰弹轨迹效果
+        if (bullet.type === 'fire' && Math.random() < 0.5) {
+            particles.push({
+                x: bullet.x,
+                y: bullet.y,
+                vx: (Math.random() - 0.5) * 2,
+                vy: -Math.random() * 3 - 1,
+                size: Math.random() * 2 + 1,
+                color: `hsl(${25 + Math.random() * 20}, 100%, 50%)`,
+                life: 20
+            });
         }
     }
 
@@ -468,9 +826,21 @@ function update() {
     if (Math.random() < currentLevelConfig.spawnRate && enemies.length < currentLevelConfig.maxEnemies) {
         createEnemy();
     }
+    
+    // 更新粒子系统
+    for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+        
+        if (p.life <= 0) {
+            particles.splice(i, 1);
+        }
+    }
 }
 
-// 渲染函数 - 修复版
+// 渲染函数
 function render() {
     if (!game.isStarted) return;
     
@@ -538,31 +908,132 @@ function render() {
     ctx.shadowBlur = 0;
 
     // 子弹渲染
-    const currentBullet = bulletTypes[currentBulletType];
     bullets.forEach(bullet => {
-        if (currentBullet.name === '激光') {
-            ctx.shadowColor = bullet.color;
-            ctx.shadowBlur = 15;
-            ctx.fillStyle = bullet.color;
-            ctx.fillRect(bullet.x - bullet.size * 0.8, bullet.y - bullet.size * 3, bullet.size * 1.6, bullet.size * 5);
-            ctx.shadowBlur = 0;
-        } else if (currentBullet.name === '彩虹') {
-            const hue = (Date.now() / 20 + bullet.x) % 360;
-            ctx.fillStyle = `hsl(${hue}, 100%, 60%)`;
-            ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
-            ctx.shadowBlur = 8;
-            ctx.fillRect(bullet.x - bullet.size / 2, bullet.y - bullet.size / 2, bullet.size, bullet.size);
-            ctx.shadowBlur = 0;
-        } else {
-            ctx.fillStyle = bullet.color;
-            ctx.shadowColor = bullet.color;
-            ctx.shadowBlur = bullet.size * 1.5;
-            ctx.fillRect(bullet.x - bullet.size / 2, bullet.y - bullet.size / 2, bullet.size, bullet.size);
-            ctx.shadowBlur = 0;
+        switch(bullet.type) {
+            case 'laser':
+                ctx.shadowColor = bullet.color;
+                ctx.shadowBlur = 15;
+                ctx.fillStyle = bullet.color;
+                ctx.fillRect(bullet.x - bullet.size * 0.8, bullet.y - bullet.size * 3, bullet.size * 1.6, bullet.size * 5);
+                ctx.shadowBlur = 0;
+                break;
+                
+            case 'poison':
+                ctx.globalAlpha = 0.8;
+                ctx.shadowColor = '#7cfc00';
+                ctx.shadowBlur = 10;
+                ctx.fillStyle = bullet.color;
+                ctx.beginPath();
+                ctx.arc(bullet.x, bullet.y, bullet.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+                ctx.shadowBlur = 0;
+                break;
+                
+            case 'frost':
+                ctx.shadowColor = '#87ceeb';
+                ctx.shadowBlur = 8;
+                ctx.fillStyle = bullet.color;
+                ctx.beginPath();
+                ctx.arc(bullet.x, bullet.y, bullet.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 雪花效果
+                for (let i = 0; i < 3; i++) {
+                    const angle = (Date.now() / 500 + i * 2) % (Math.PI * 2);
+                    const radius = bullet.size + 3;
+                    const px = bullet.x + Math.cos(angle) * radius;
+                    const py = bullet.y + Math.sin(angle) * radius;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(px, py, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.shadowBlur = 0;
+                break;
+                
+            case 'fire':
+                const fireHue = (Date.now() / 50) % 60;
+                ctx.shadowColor = '#ff4500';
+                ctx.shadowBlur = 15;
+                ctx.fillStyle = `hsl(${30 + fireHue}, 100%, 50%)`;
+                ctx.beginPath();
+                ctx.arc(bullet.x, bullet.y, bullet.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                break;
+                
+            case 'blackhole':
+                ctx.shadowColor = '#000000';
+                ctx.shadowBlur = 20;
+                ctx.fillStyle = bullet.color;
+                ctx.beginPath();
+                ctx.arc(bullet.x, bullet.y, bullet.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 旋转光环
+                ctx.strokeStyle = '#4b0082';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                const rotation = Date.now() / 200;
+                const rx = Math.cos(rotation) * bullet.size;
+                const ry = Math.sin(rotation) * bullet.size;
+                ctx.arc(bullet.x + rx, bullet.y + ry, bullet.size * 0.5, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+                break;
+                
+            case 'homing':
+                ctx.shadowColor = '#9370db';
+                ctx.shadowBlur = 10;
+                ctx.fillStyle = bullet.color;
+                ctx.beginPath();
+                ctx.arc(bullet.x, bullet.y, bullet.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 追踪线效果
+                if (bullet.target) {
+                    ctx.strokeStyle = 'rgba(147, 112, 219, 0.3)';
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(bullet.x, bullet.y);
+                    ctx.lineTo(bullet.target.x, bullet.target.y);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+                ctx.shadowBlur = 0;
+                break;
+                
+            case 'explode':
+                const flash = Math.sin(Date.now() / 100) > 0;
+                ctx.shadowColor = '#ff6347';
+                ctx.shadowBlur = flash ? 15 : 8;
+                ctx.fillStyle = flash ? '#ffffff' : bullet.color;
+                ctx.beginPath();
+                ctx.arc(bullet.x, bullet.y, bullet.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                break;
+                
+            case 'rainbow':
+                const hue = (Date.now() / 20 + bullet.x) % 360;
+                ctx.fillStyle = `hsl(${hue}, 100%, 60%)`;
+                ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
+                ctx.shadowBlur = 8;
+                ctx.fillRect(bullet.x - bullet.size / 2, bullet.y - bullet.size / 2, bullet.size, bullet.size);
+                ctx.shadowBlur = 0;
+                break;
+                
+            default:
+                ctx.fillStyle = bullet.color;
+                ctx.shadowColor = bullet.color;
+                ctx.shadowBlur = bullet.size * 1.5;
+                ctx.fillRect(bullet.x - bullet.size / 2, bullet.y - bullet.size / 2, bullet.size, bullet.size);
+                ctx.shadowBlur = 0;
         }
     });
 
-    // 敌人渲染 - 修复：确保enemies数组被正确渲染
+    // 敌人渲染
     enemies.forEach(enemy => {
         ctx.fillStyle = enemy.color;
         ctx.shadowColor = enemy.color;
@@ -579,6 +1050,42 @@ function render() {
         ctx.fillRect(enemy.x - enemy.size, enemy.y - enemy.size - 10, enemy.size * 2 * hpPercent, 5);
         ctx.strokeStyle = '#ffffff';
         ctx.strokeRect(enemy.x - enemy.size, enemy.y - enemy.size - 10, enemy.size * 2, 5);
+        
+        // 显示状态效果
+        if (enemy.poisoned) {
+            ctx.fillStyle = 'rgba(124, 252, 0, 0.3)';
+            ctx.beginPath();
+            ctx.arc(enemy.x, enemy.y, enemy.size + 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        if (enemy.frostTimer > 0) {
+            ctx.strokeStyle = 'rgba(135, 206, 235, 0.7)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(enemy.x, enemy.y, enemy.size + 5, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        if (enemy.burning) {
+            ctx.fillStyle = `rgba(255, 69, 0, ${0.3 + 0.2 * Math.sin(Date.now() / 200)})`;
+            ctx.beginPath();
+            ctx.arc(enemy.x, enemy.y, enemy.size + 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    });
+    
+    // 渲染粒子系统
+    particles.forEach(p => {
+        ctx.globalAlpha = p.alpha || 0.8;
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = p.size * 2;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0;
     });
 }
 
@@ -591,7 +1098,8 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-// 事件处理函数
+// ==================== 事件处理 ====================
+
 function handleTouch(e) {
     e.preventDefault();
     const touch = e.touches[0];
@@ -679,42 +1187,38 @@ canvas.addEventListener('touchend', (e) => {
     isTouching = false;
 }, {passive: false});
 
-// ==================== 新增：鼠标事件支持（电脑版） ====================
+// ==================== 新增：鼠标事件支持 ====================
 
 // 鼠标按下/移动事件
 canvas.addEventListener('mousedown', function(e) {
     e.preventDefault();
-    handleMouse(e);
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    player.targetX = Math.max(player.size, Math.min(canvas.width - player.size, 
+        (e.clientX - rect.left) * scaleX));
     isTouching = true;
+    isManualControl = false;
 });
 
 canvas.addEventListener('mousemove', function(e) {
     if (isTouching) {
         e.preventDefault();
-        handleMouse(e);
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        player.targetX = Math.max(player.size, Math.min(canvas.width - player.size, 
+            (e.clientX - rect.left) * scaleX));
     }
 });
 
-// 鼠标松开事件
 canvas.addEventListener('mouseup', function(e) {
     e.preventDefault();
     isTouching = false;
 });
 
-// 鼠标离开画布事件
 canvas.addEventListener('mouseleave', function(e) {
     e.preventDefault();
     isTouching = false;
 });
-
-// 鼠标事件处理函数
-function handleMouse(e) {
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    player.targetX = Math.max(player.size, Math.min(canvas.width - player.size, 
-        (e.clientX - rect.left) * scaleX));
-    isManualControl = false;
-}
 
 // ==================== 新增：键盘控制支持 ====================
 
@@ -722,12 +1226,11 @@ function handleMouse(e) {
 document.addEventListener('keydown', function(e) {
     if (!game.isStarted || game.isPaused || game.isGameOver) return;
     
-    e.preventDefault();
-    
     switch(e.key.toLowerCase()) {
         case 'arrowleft':
         case 'a':
-        case 'j': // 支持多种键位
+        case 'j':
+            e.preventDefault();
             isManualControl = true;
             moveDirection = {x: -1, y: 0};
             isTouching = true;
@@ -736,46 +1239,41 @@ document.addEventListener('keydown', function(e) {
         case 'arrowright':
         case 'd':
         case 'l':
+            e.preventDefault();
             isManualControl = true;
             moveDirection = {x: 1, y: 0};
             isTouching = true;
             break;
             
-        case 's': // 切换子弹
+        case 's':
         case ' ':
             e.preventDefault();
-            // 模拟点击切换子弹按钮
             currentBulletType = (currentBulletType + 1) % bulletTypes.length;
             updateBulletDisplay();
-            
-            // 添加视觉反馈
             switchBulletBtn.style.background = 'linear-gradient(135deg, #00ff88, #00ccff)';
             setTimeout(() => {
                 switchBulletBtn.style.background = 'linear-gradient(135deg, #ff0080, #ff6600)';
             }, 200);
             break;
             
-        case 'm': // 切换生命模式
-        case 'shift':
+        case 'm':
+            e.preventDefault();
             if (!game.isPaused && !game.isGameOver) {
                 toggleLifeMode();
             }
             break;
             
-        case 'r': // 重新开始（游戏结束时）
+        case 'r':
             if (game.isGameOver) {
                 restartGame();
             }
             break;
             
-        case 'p': // 暂停/继续
+        case 'p':
         case 'escape':
+            e.preventDefault();
             game.isPaused = !game.isPaused;
-            if (game.isPaused) {
-                console.log('⏸️ 游戏暂停');
-            } else {
-                console.log('▶️ 游戏继续');
-            }
+            console.log(game.isPaused ? '⏸️ 游戏暂停' : '▶️ 游戏继续');
             break;
     }
 });
@@ -791,7 +1289,7 @@ document.addEventListener('keyup', function(e) {
         case 'arrowright':
         case 'd':
         case 'l':
-            if (!isTouching) { // 只有当没有触摸时才重置
+            if (!isTouching) {
                 moveDirection = {x: 0, y: 0};
             }
             break;
@@ -805,60 +1303,24 @@ canvas.addEventListener('click', function(e) {
     const currentTime = new Date().getTime();
     const clickGap = currentTime - lastClickTime;
     
-    // 双击进入全屏（300ms内两次点击）
     if (clickGap < 300 && clickGap > 0) {
-        toggleFullscreen();
+        if (!document.fullscreenElement) {
+            if (canvas.requestFullscreen) {
+                canvas.requestFullscreen();
+            } else if (canvas.webkitRequestFullscreen) {
+                canvas.webkitRequestFullscreen();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+        }
     }
     
     lastClickTime = currentTime;
 });
-
-// 全屏切换函数
-function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-        // 进入全屏
-        if (canvas.requestFullscreen) {
-            canvas.requestFullscreen();
-        } else if (canvas.webkitRequestFullscreen) { /* Safari */
-            canvas.webkitRequestFullscreen();
-        } else if (canvas.msRequestFullscreen) { /* IE11 */
-            canvas.msRequestFullscreen();
-        }
-        
-        // 全屏后调整画布大小
-        setTimeout(() => {
-            initCanvas();
-        }, 100);
-    } else {
-        // 退出全屏
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) { /* Safari */
-            document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) { /* IE11 */
-            document.msExitFullscreen();
-        }
-    }
-}
-
-// 全屏变化监听
-document.addEventListener('fullscreenchange', function() {
-    setTimeout(() => {
-        initCanvas();
-    }, 100);
-});
-
-// ==================== 新增：游戏说明提示 ====================
-
-console.log('🖱️ 电脑版操作说明：');
-console.log('• 鼠标点击/拖拽：控制飞船移动');
-console.log('• 键盘A/D或←→：左右移动飞船');
-console.log('• 键盘S键：切换子弹类型');
-console.log('• 键盘M键：切换生命模式');
-console.log('• 双击画面：切换全屏模式');
-console.log('• 空格键：快速切换子弹');
-console.log('• P键：暂停/继续游戏');
-console.log('• R键：重新开始（游戏结束时）');
 
 // 阻止滚动
 document.addEventListener('touchmove', (e) => {
@@ -870,3 +1332,4 @@ document.addEventListener('touchmove', (e) => {
 
 console.log('🎮 游戏已加载，请选择游戏模式');
 console.log('✨ 新功能：游戏过程中可随时点击中间按钮切换生命模式！');
+console.log('🖱️ 电脑版操作：鼠标控制移动，A/D左右移动，S切换子弹，M切换模式');
