@@ -1,0 +1,395 @@
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { 
+    background: #000; 
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    min-height: 100vh; 
+    overflow: hidden; 
+    touch-action: none; 
+    position: fixed; 
+    width: 100%; 
+    height: 100%; 
+}
+.game-wrapper { 
+    position: relative; 
+    width: 100%; 
+    height: 100%; 
+    display: flex; 
+    flex-direction: column; 
+}
+.game-header { 
+    background: rgba(20,20,20,0.95); 
+    backdrop-filter: blur(10px); 
+    color: #fff; 
+    padding: 6px 15px;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    border-bottom: 1px solid rgba(255,255,255,0.1); 
+    z-index: 100; 
+    user-select: none; 
+    height: 60px;
+    min-height: 60px; 
+}
+.stat-item { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    gap: 2px; 
+}
+.stat-label { 
+    font-size: 9px; 
+    color: #aaa; 
+    text-transform: uppercase; 
+    letter-spacing: 0.3px; 
+}
+.stat-value { 
+    font-size: 14px; 
+    font-weight: bold; 
+    text-shadow: 0 0 4px currentColor; 
+}
+.health { 
+    color: #00ff88; 
+}
+.health.infinite::after { 
+    content: '∞'; 
+    margin-left: 3px; 
+    font-size: 12px; 
+}
+.score { 
+    color: #ffd700; 
+}
+.level { 
+    color: #ff00ff; 
+}
+.bullet-type { 
+    color: #00ccff; 
+    font-size: 12px; 
+    display: flex; 
+    align-items: center; 
+    gap: 4px; 
+}
+.bullet-color { 
+    width: 12px; 
+    height: 12px; 
+    border-radius: 50%; 
+    box-shadow: 0 0 4px currentColor; 
+}
+.canvas-container { 
+    position: relative; 
+    flex: 1; 
+    display: flex; 
+    justify-content: center; 
+    align-items: flex-start; 
+    overflow: hidden; 
+    padding-top: 5px; 
+    width: 100%; 
+    height: calc(100% - 60px); 
+}
+#gameCanvas { 
+    background: #000; 
+    border: 2px solid rgba(0,255,255,0.4);
+    display: block; 
+    width: 98% !important; 
+    max-width: 98% !important;
+    height: 85% !important; 
+    max-height: 85% !important;
+    touch-action: none; 
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2); 
+    margin-top: 0; 
+}
+
+/* 游戏模式选择界面 */
+.mode-selection {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.mode-title {
+    color: #00ff88;
+    font-size: 32px;
+    margin-bottom: 30px;
+    text-shadow: 0 0 10px #00ff88;
+    text-align: center;
+}
+
+.mode-options {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 80%;
+    max-width: 400px;
+}
+
+.mode-btn {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 2px solid #00ff88;
+    border-radius: 15px;
+    padding: 20px;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.mode-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+    border-color: #00ccff;
+}
+
+.mode-btn.infinite {
+    border-color: #00ff88;
+}
+
+.mode-btn.limited {
+    border-color: #ff0080;
+}
+
+.mode-description {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 8px;
+    opacity: 0.8;
+}
+
+/* 关卡显示样式 */
+.level-info {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    padding: 8px 15px;
+    border-radius: 20px;
+    border: 1px solid #ff00ff;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    z-index: 300;
+    display: none;
+}
+
+/* 生命值警告 */
+.life-warning {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 0, 0, 0.8);
+    padding: 15px 25px;
+    border-radius: 15px;
+    border: 2px solid #ff0000;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    z-index: 400;
+    display: none;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.1); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* 胜利/失败弹窗 */
+.game-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    display: none;
+}
+
+.game-message {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    padding: 30px;
+    border-radius: 20px;
+    border: 3px solid #00ff88;
+    text-align: center;
+    max-width: 80%;
+    box-shadow: 0 0 50px rgba(0, 255, 136, 0.5);
+}
+
+.game-message h2 {
+    color: #00ff88;
+    font-size: 32px;
+    margin-bottom: 15px;
+    text-shadow: 0 0 10px #00ff88;
+}
+
+.game-message p {
+    color: #fff;
+    font-size: 16px;
+    margin: 10px 0;
+}
+
+.win-message {
+    border-color: #ffd700;
+    box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+}
+
+.win-message h2 {
+    color: #ffd700;
+    text-shadow: 0 0 10px #ffd700;
+}
+
+.restart-btn {
+    background: linear-gradient(135deg, #ff0080, #ff6600);
+    border: none;
+    border-radius: 25px;
+    padding: 12px 30px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.restart-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(255, 0, 128, 0.7);
+}
+
+/* 控制区域容器 */
+.controls-area {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 20%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    z-index: 200;
+    pointer-events: none;
+}
+
+/* 移动控制面板 - 简化的左右移动 */
+.move-controls { 
+    position: relative;
+    display: flex;
+    gap: 40px;
+    margin-bottom: 15px;
+    pointer-events: auto;
+}
+.move-btn { 
+    width: 70px;
+    height: 70px; 
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid #00ff88; 
+    color: #00ff88; 
+    border-radius: 50%;
+    font-size: 28px;
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    cursor: pointer; 
+    user-select: none; 
+    transition: all 0.1s; 
+    box-shadow: 0 4px 10px rgba(0, 255, 136, 0.3); 
+}
+.move-btn:active { 
+    background: rgba(0, 255, 136, 0.3); 
+    transform: scale(0.9); 
+    box-shadow: 0 2px 5px rgba(0, 255, 136, 0.5); 
+}
+
+/* 切换子弹按钮 */
+.mobile-controls { 
+    position: relative;
+    margin-bottom: 15px;
+    pointer-events: auto;
+}
+.control-btn { 
+    background: linear-gradient(135deg, #ff0080, #ff6600); 
+    border: none; 
+    border-radius: 50%; 
+    width: 75px; 
+    height: 75px; 
+    color: #fff; 
+    font-size: 12px; 
+    font-weight: bold; 
+    box-shadow: 0 6px 20px rgba(255,0,128,0.5); 
+    cursor: pointer; 
+    user-select: none; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 2px; 
+    transition: all 0.1s; 
+}
+.control-btn:active { 
+    transform: scale(0.9); 
+    box-shadow: 0 3px 15px rgba(255,0,128,0.7); 
+}
+
+/* 新增：生命模式切换按钮 */
+.life-mode-toggle { 
+    position: relative;
+    margin-bottom: 10px;
+    pointer-events: auto;
+}
+.life-mode-btn { 
+    background: rgba(0, 0, 0, 0.6); 
+    border: 2px solid #00ffff; 
+    border-radius: 50%; 
+    width: 55px;  /* 比切换子弹按钮小 */
+    height: 55px; 
+    color: #00ffff; 
+    font-size: 16px; /* 较小的字体 */
+    font-weight: bold; 
+    cursor: pointer; 
+    user-select: none; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 1px; 
+    transition: all 0.2s; 
+    box-shadow: 0 4px 12px rgba(0, 255, 255, 0.3); 
+}
+.life-mode-btn:active { 
+    transform: scale(0.9); 
+    box-shadow: 0 2px 8px rgba(0, 255, 255, 0.5); 
+}
+.life-mode-btn.infinite {
+    border-color: #00ff88;
+    color: #00ff88;
+}
+.life-mode-btn.limited {
+    border-color: #ff0080;
+    color: #ff0080;
+}
+.life-mode-text {
+    font-size: 8px; /* 很小的文字 */
+    opacity: 0.9;
+    margin-top: 1px;
+}
