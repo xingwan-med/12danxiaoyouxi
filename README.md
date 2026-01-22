@@ -2,10 +2,6 @@
 
 一个功能完整的HTML5飞行射击游戏，支持无限生命和有限生命模式实时切换。
 
-![飞行射击游戏界面](https://via.placeholder.com/800x450/0a0a1a/00ff88?text=12种子弹射击游戏+By+Xingwan-med)
-
-## 🚀 立即体验
-
 **在线游玩**：https://xingwan-med.github.io/12danxiaoyouxi/
 
 ## 🎯 游戏特色
