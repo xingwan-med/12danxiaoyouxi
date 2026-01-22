@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,viewport-fit=cover">
+    <title>无限血量·12种子弹</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="game-wrapper">
+    <!-- 游戏模式选择界面 -->
+    <div class="mode-selection" id="modeSelection">
+        <h2 class="mode-title">选择游戏模式</h2>
+        <div class="mode-options">
+            <button class="mode-btn infinite" id="infiniteModeBtn">
+                ♾️ 无限生命模式
+                <div class="mode-description">适合新手玩家，专注于射击和闯关</div>
+            </button>
+            <button class="mode-btn limited" id="limitedModeBtn">
+                ❤️ 有限生命模式
+                <div class="mode-description">适合挑战者，有3次生命机会</div>
+            </button>
+        </div>
+    </div>
+
+    <div class="game-header" id="gameHeader" style="display: none;">
+        <div class="stat-item">
+            <div class="stat-label">生命值</div>
+            <div class="stat-value health" id="healthValue">∞</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">分数</div>
+            <div class="stat-value score" id="score">0</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">关卡</div>
+            <div class="stat-value level" id="level">1</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">进度</div>
+            <div class="stat-value" id="progress">0/20</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">子弹</div>
+            <div class="bullet-type">
+                <div class="bullet-color" id="bulletColor"></div>
+                <span id="bulletName">普通</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="canvas-container" style="display: none;">
+        <canvas id="gameCanvas"></canvas>
+        
+        <!-- 生命值警告 -->
+        <div class="life-warning" id="lifeWarning">生命值低！</div>
+        
+        <!-- 关卡信息显示 -->
+        <div class="level-info" id="levelInfo">关卡 1</div>
+        
+        <!-- 游戏结束弹窗 -->
+        <div class="game-overlay" id="gameOverlay">
+            <div class="game-message" id="gameMessage">
+                <h2 id="messageTitle">游戏结束</h2>
+                <p id="messageText"></p>
+                <p id="messageStats"></p>
+                <button class="restart-btn" id="restartBtn">重新开始</button>
+            </div>
+        </div>
+        
+        <!-- 控制区域 -->
+        <div class="controls-area">
+            <!-- 左右移动按钮 -->
+            <div class="move-controls" id="moveControls">
+                <button class="move-btn" data-direction="left">←</button>
+                <button class="move-btn" data-direction="right">→</button>
+            </div>
+            
+            <!-- 新增：生命模式切换按钮 -->
+            <div class="life-mode-toggle">
+                <button class="life-mode-btn infinite" id="lifeModeBtn">
+                    <div style="font-size: 18px;">♾️</div>
+                    <div class="life-mode-text">无限</div>
+                </button>
+            </div>
+            
+            <!-- 切换子弹按钮 -->
+            <div class="mobile-controls">
+                <button class="control-btn" id="switchBulletBtn">
+                    <div style="font-size: 20px;">🔄</div>
+                    <div style="font-size: 10px; opacity: 0.9;">切换子弹</div>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
