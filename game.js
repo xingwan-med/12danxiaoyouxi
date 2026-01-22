@@ -803,5 +803,190 @@ document.addEventListener('touchmove', (e) => {
 }, {passive: false});
 
 console.log('🎮 游戏已加载，请选择游戏模式');
+
+// 事件绑定
+infiniteModeBtn.addEventListener('click', () => {
+    selectGameMode(true);
+});
+
+limitedModeBtn.addEventListener('click', () => {
+    selectGameMode(false);
+});
+
+// 生命模式切换按钮事件
+lifeModeBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleLifeMode();
+}, false);
+
+// 切换子弹按钮事件
+switchBulletBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    currentBulletType = (currentBulletType + 1) % bulletTypes.length;
+    updateBulletDisplay();
+    
+    this.style.background = 'linear-gradient(135deg, #00ff88, #00ccff)';
+    setTimeout(() => {
+        this.style.background = 'linear-gradient(135deg, #ff0080, #ff6600)';
+    }, 200);
+}, false);
+
+// 移动控制按钮事件
+moveControls.querySelectorAll('.move-btn').forEach(btn => {
+    btn.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const direction = this.getAttribute('data-direction');
+        isManualControl = true;
+        isTouching = true;
+
+        if (direction === 'left') {
+            moveDirection = {x: -1, y: 0};
+        } else if (direction === 'right') {
+            moveDirection = {x: 1, y: 0};
+        }
+
+        this.style.background = 'rgba(0, 255, 136, 0.3)';
+        this.style.boxShadow = '0 2px 8px rgba(0, 255, 136, 0.7)';
+        this.style.transform = 'scale(0.9)';
+    }, {passive: false});
+
+    btn.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        moveDirection = {x: 0, y: 0};
+        isTouching = false;
+        this.style.background = 'rgba(0, 0, 0, 0.5)';
+        this.style.boxShadow = '0 4px 10px rgba(0, 255, 136, 0.3)';
+        this.style.transform = '';
+    }, {passive: false});
+});
+
+// 重新开始按钮事件
+restartBtn.addEventListener('click', restartGame);
+
+// 画布触摸事件
+canvas.addEventListener('touchstart', handleTouch, {passive: false});
+canvas.addEventListener('touchmove', handleTouch, {passive: false});
+canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    isTouching = false;
+}, {passive: false});
+
+// ==================== 新增：鼠标事件支持 ====================
+canvas.addEventListener('mousedown', function(e) {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    player.targetX = Math.max(player.size, Math.min(canvas.width - player.size, 
+        (e.clientX - rect.left) * scaleX));
+    isTouching = true;
+    isManualControl = false;
+});
+
+canvas.addEventListener('mousemove', function(e) {
+    if (isTouching) {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        player.targetX = Math.max(player.size, Math.min(canvas.width - player.size, 
+            (e.clientX - rect.left) * scaleX));
+    }
+});
+
+canvas.addEventListener('mouseup', function(e) {
+    e.preventDefault();
+    isTouching = false;
+});
+
+canvas.addEventListener('mouseleave', function(e) {
+    e.preventDefault();
+    isTouching = false;
+});
+
+// ==================== 新增：键盘控制支持 ====================
+document.addEventListener('keydown', function(e) {
+    if (!game.isStarted || game.isPaused || game.isGameOver) return;
+    
+    switch(e.key.toLowerCase()) {
+        case 'arrowleft':
+        case 'a':
+        case 'j':
+            e.preventDefault();
+            isManualControl = true;
+            moveDirection = {x: -1, y: 0};
+            isTouching = true;
+            break;
+            
+        case 'arrowright':
+        case 'd':
+        case 'l':
+            e.preventDefault();
+            isManualControl = true;
+            moveDirection = {x: 1, y: 0};
+            isTouching = true;
+            break;
+            
+        case 's':
+        case ' ':
+            e.preventDefault();
+            currentBulletType = (currentBulletType + 1) % bulletTypes.length;
+            updateBulletDisplay();
+            
+            switchBulletBtn.style.background = 'linear-gradient(135deg, #00ff88, #00ccff)';
+            setTimeout(() => {
+                switchBulletBtn.style.background = 'linear-gradient(135deg, #ff0080, #ff6600)';
+            }, 200);
+            break;
+            
+        case 'm':
+            e.preventDefault();
+            if (!game.isPaused && !game.isGameOver) {
+                toggleLifeMode();
+            }
+            break;
+            
+        case 'r':
+            if (game.isGameOver) {
+                restartGame();
+            }
+            break;
+            
+        case 'p':
+        case 'escape':
+            e.preventDefault();
+            game.isPaused = !game.isPaused;
+            console.log(game.isPaused ? '⏸️ 游戏暂停' : '▶️ 游戏继续');
+            break;
+    }
+});
+
+document.addEventListener('keyup', function(e) {
+    if (!game.isStarted || game.isPaused || game.isGameOver) return;
+    
+    switch(e.key.toLowerCase()) {
+        case 'arrowleft':
+        case 'a':
+        case 'j':
+        case 'arrowright':
+        case 'd':
+        case 'l':
+            if (!isTouching) {
+                moveDirection = {x: 0, y: 0};
+            }
+            break;
+    }
+});
+
+// 阻止滚动
+document.addEventListener('touchmove', (e) => {
+    if (e.target === canvas || e.target.closest('.move-controls') || 
+        e.target.closest('.mobile-controls') || e.target.closest('.life-mode-toggle')) {
+        e.preventDefault();
+    }
+}, {passive: false});
+
 console.log('✨ 新功能：游戏过程中可随时点击中间按钮切换生命模式！');
 console.log('🎯 12种子弹系统：普通、散弹、激光、导弹、闪电、彩虹、毒液、冰霜、火焰、黑洞、追踪、爆破');
