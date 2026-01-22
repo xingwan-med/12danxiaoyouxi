@@ -679,6 +679,187 @@ canvas.addEventListener('touchend', (e) => {
     isTouching = false;
 }, {passive: false});
 
+// ==================== 新增：鼠标事件支持（电脑版） ====================
+
+// 鼠标按下/移动事件
+canvas.addEventListener('mousedown', function(e) {
+    e.preventDefault();
+    handleMouse(e);
+    isTouching = true;
+});
+
+canvas.addEventListener('mousemove', function(e) {
+    if (isTouching) {
+        e.preventDefault();
+        handleMouse(e);
+    }
+});
+
+// 鼠标松开事件
+canvas.addEventListener('mouseup', function(e) {
+    e.preventDefault();
+    isTouching = false;
+});
+
+// 鼠标离开画布事件
+canvas.addEventListener('mouseleave', function(e) {
+    e.preventDefault();
+    isTouching = false;
+});
+
+// 鼠标事件处理函数
+function handleMouse(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    player.targetX = Math.max(player.size, Math.min(canvas.width - player.size, 
+        (e.clientX - rect.left) * scaleX));
+    isManualControl = false;
+}
+
+// ==================== 新增：键盘控制支持 ====================
+
+// 键盘事件监听
+document.addEventListener('keydown', function(e) {
+    if (!game.isStarted || game.isPaused || game.isGameOver) return;
+    
+    e.preventDefault();
+    
+    switch(e.key.toLowerCase()) {
+        case 'arrowleft':
+        case 'a':
+        case 'j': // 支持多种键位
+            isManualControl = true;
+            moveDirection = {x: -1, y: 0};
+            isTouching = true;
+            break;
+            
+        case 'arrowright':
+        case 'd':
+        case 'l':
+            isManualControl = true;
+            moveDirection = {x: 1, y: 0};
+            isTouching = true;
+            break;
+            
+        case 's': // 切换子弹
+        case ' ':
+            e.preventDefault();
+            // 模拟点击切换子弹按钮
+            currentBulletType = (currentBulletType + 1) % bulletTypes.length;
+            updateBulletDisplay();
+            
+            // 添加视觉反馈
+            switchBulletBtn.style.background = 'linear-gradient(135deg, #00ff88, #00ccff)';
+            setTimeout(() => {
+                switchBulletBtn.style.background = 'linear-gradient(135deg, #ff0080, #ff6600)';
+            }, 200);
+            break;
+            
+        case 'm': // 切换生命模式
+        case 'shift':
+            if (!game.isPaused && !game.isGameOver) {
+                toggleLifeMode();
+            }
+            break;
+            
+        case 'r': // 重新开始（游戏结束时）
+            if (game.isGameOver) {
+                restartGame();
+            }
+            break;
+            
+        case 'p': // 暂停/继续
+        case 'escape':
+            game.isPaused = !game.isPaused;
+            if (game.isPaused) {
+                console.log('⏸️ 游戏暂停');
+            } else {
+                console.log('▶️ 游戏继续');
+            }
+            break;
+    }
+});
+
+// 键盘松开事件
+document.addEventListener('keyup', function(e) {
+    if (!game.isStarted || game.isPaused || game.isGameOver) return;
+    
+    switch(e.key.toLowerCase()) {
+        case 'arrowleft':
+        case 'a':
+        case 'j':
+        case 'arrowright':
+        case 'd':
+        case 'l':
+            if (!isTouching) { // 只有当没有触摸时才重置
+                moveDirection = {x: 0, y: 0};
+            }
+            break;
+    }
+});
+
+// ==================== 新增：双击全屏支持 ====================
+
+let lastClickTime = 0;
+canvas.addEventListener('click', function(e) {
+    const currentTime = new Date().getTime();
+    const clickGap = currentTime - lastClickTime;
+    
+    // 双击进入全屏（300ms内两次点击）
+    if (clickGap < 300 && clickGap > 0) {
+        toggleFullscreen();
+    }
+    
+    lastClickTime = currentTime;
+});
+
+// 全屏切换函数
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        // 进入全屏
+        if (canvas.requestFullscreen) {
+            canvas.requestFullscreen();
+        } else if (canvas.webkitRequestFullscreen) { /* Safari */
+            canvas.webkitRequestFullscreen();
+        } else if (canvas.msRequestFullscreen) { /* IE11 */
+            canvas.msRequestFullscreen();
+        }
+        
+        // 全屏后调整画布大小
+        setTimeout(() => {
+            initCanvas();
+        }, 100);
+    } else {
+        // 退出全屏
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) { /* Safari */
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) { /* IE11 */
+            document.msExitFullscreen();
+        }
+    }
+}
+
+// 全屏变化监听
+document.addEventListener('fullscreenchange', function() {
+    setTimeout(() => {
+        initCanvas();
+    }, 100);
+});
+
+// ==================== 新增：游戏说明提示 ====================
+
+console.log('🖱️ 电脑版操作说明：');
+console.log('• 鼠标点击/拖拽：控制飞船移动');
+console.log('• 键盘A/D或←→：左右移动飞船');
+console.log('• 键盘S键：切换子弹类型');
+console.log('• 键盘M键：切换生命模式');
+console.log('• 双击画面：切换全屏模式');
+console.log('• 空格键：快速切换子弹');
+console.log('• P键：暂停/继续游戏');
+console.log('• R键：重新开始（游戏结束时）');
+
 // 阻止滚动
 document.addEventListener('touchmove', (e) => {
     if (e.target === canvas || e.target.closest('.move-controls') || 
