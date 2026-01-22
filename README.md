@@ -63,8 +63,6 @@
 - ✅ **桌面浏览器**（Chrome/Firefox/Safari/Edge）
 - ✅ **触控屏笔记本**
 
-## 📁 项目结构
-
 ## 🛠️ 技术特点
 
 ### 🎨 前端技术
@@ -78,31 +76,3 @@
 - 星空动态背景
 - 粒子效果优化
 - 内存管理完善
-
-### 📱 用户体验
-- 防误触设计
-- 视觉反馈系统
-- 游戏状态保存
-- 自适应屏幕尺寸
-
-## 🚀 快速开始
-
-### 方式一：GitHub Pages（推荐）
-直接访问：https://xingwan-med.github.io/12danxiaoyouxi/
-
-### 方式二：本地运行
-```bash
-# 克隆仓库
-git clone https://github.com/xingwan-med/12danxiaoyouxi.git
-
-# 进入目录
-cd 12danxiaoyouxi
-
-# 用浏览器打开（三选一）
-# 方法1：直接双击index.html
-# 方法2：使用Python简易服务器
-python -m http.server 8000
-# 然后在浏览器访问 http://localhost:8000
-
-# 方法3：使用Node.js http-server
-npx http-server
